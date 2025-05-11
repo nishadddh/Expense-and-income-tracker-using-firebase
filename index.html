@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income & Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4285F4;
+            --secondary: #34A853;
+            --accent: #FBBC05;
+            --error: #EA4335;
+            --light: #F5F5F5;
+            --dark: #202124;
+            --gray: #5F6368;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Auth Page Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .auth-title {
+            color: var(--primary);
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 500;
+        }
+
+        .auth-subtitle {
+            color: var(--gray);
+            margin-bottom: 32px;
+            font-weight: 400;
+        }
+
+        /* Google Sign-In Button */
+        .gsi-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid #DADCE0;
+            border-radius: 4px;
+            color: var(--dark);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            height: 40px;
+            padding: 0 12px;
+            width: 100%;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .gsi-button:hover {
+            background: #F8F9FA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .gsi-icon {
+            height: 18px;
+            margin-right: 12px;
+            width: 18px;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .status-success {
+            background-color: #E6F4EA;
+            color: var(--secondary);
+            border-left: 4px solid var(--secondary);
+        }
+
+        .status-error {
+            background-color: #FCE8E6;
+            color: var(--error);
+            border-left: 4px solid var(--error);
+        }
+
+        /* User Profile */
+        .user-profile {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            object-fit: cover;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-name {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .sign-out-btn {
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 24px;
+            transition: all 0.3s;
+        }
+
+        .sign-out-btn:hover {
+            background: #D32F2F;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(234, 67, 53, 0.3);
+        }
+
+        /* App Layout */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .app-title {
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .username {
+            font-weight: 500;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #E0E0E0;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--dark);
+            background: #F5F5F5;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-title {
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .close-form {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--gray);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #DADCE0;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        /* Style for datalist inputs */
+        input[list] {
+            padding-right: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235F6368' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #3367D6;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-secondary {
+            background: #F1F3F4;
+            color: var(--dark);
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background: #E0E0E0;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #D32F2F;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(234, 67, 53, 0.3);
+        }
+
+        /* Transaction Table */
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        th {
+            background: #F8F9FA;
+            font-weight: 500;
+            color: var(--gray);
+        }
+
+        tr:hover {
+            background: #F5F5F5;
+        }
+
+        .income {
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        .expense {
+            color: var(--error);
+            font-weight: 500;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .edit-btn {
+            background: var(--accent);
+            color: var(--dark);
+            border: none;
+        }
+
+        .edit-btn:hover {
+            background: #F2B600;
+        }
+
+        .delete-btn {
+            background: #FCE8E6;
+            color: var(--error);
+            border: none;
+        }
+
+        .delete-btn:hover {
+            background: #F5C0BB;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .balance-positive {
+            color: var(--secondary);
+        }
+
+        .balance-negative {
+            color: var(--error);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #F8F9FA;
+            border-radius: 4px;
+            color: var(--gray);
+        }
+
+        /* Print Button */
+        .print-btn {
+            background: #5f6368;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .print-btn:hover {
+            background: #3c4043;
+        }
+
+        .print-btn i {
+            margin-right: 8px;
+        }
+
+        /* Transaction Section Styles */
+        .transaction-section {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 500;
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .transaction-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .transaction-item {
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-date {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .transaction-description {
+            font-weight: 500;
+        }
+
+        .transaction-amount {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(30deg) translate(-10%, -10%); }
+            100% { transform: rotate(30deg) translate(10%, 10%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .auth-card {
+                padding: 24px;
+                margin: 16px;
+            }
+
+            .transaction-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .transaction-amount {
+                text-align: left;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #app-page, #app-page * {
+                visibility: visible;
+            }
+            #app-page {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Page -->
+    <div id="auth-page" class="auth-container">
+        <div class="auth-card">
+            <h1 class="auth-title">Income & Expense Tracker</h1>
+            <p class="auth-subtitle">Sign in to manage your finances</p>
+            
+            <button id="google-signin-btn" class="gsi-button">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="gsi-icon">
+                Sign in with Google
+            </button>
+            
+            <div id="status-message" class="status-message"></div>
+            
+            <div id="user-profile" class="user-profile">
+                <div class="welcome-banner">
+                    <img id="user-avatar" class="user-avatar" src="" alt="User avatar">
+                    <h2 id="user-name" class="user-name"></h2>
+                    <p id="user-email" class="user-email"></p>
+                </div>
+                
+                <button id="sign-out-btn" class="sign-out-btn">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Page (initially hidden) -->
+    <div id="app-page" style="display: none;">
+        <div class="container">
+            
+            <header class="app-header">
+  <h1 class="app-title">Income & Expense Tracker</h1>
+  <div class="user-info">
+    <img id="app-user-avatar" class="user-thumbnail" src="" alt="User">
+    <span id="app-username" class="username"></span>
+    <button id="logout-btn" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+</header>
+            <div class="tabs">
+                <div class="tab active" data-tab="dashboard">Dashboard</div>
+                <div class="tab" data-tab="income">Income</div>
+                <div class="tab" data-tab="expense">Expense</div>
+                <div class="tab" data-tab="reports">Reports</div>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="tab-content">
+                <button onclick="window.print()" class="print-btn no-print">
+                    <i class="fas fa-print"></i> Print Page
+                </button>
+                
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Income</div>
+                        <div id="total-income" class="summary-value">₹0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Total Expense</div>
+                        <div id="total-expense" class="summary-value">₹0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Balance</div>
+                        <div id="balance" class="summary-value balance-positive">₹0.00</div>
+                    </div>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Recent Transactions</h3>
+                    <div id="recent-transactions-sections">
+                        <!-- Transaction sections will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Income Section -->
+            <div id="income-section" class="tab-content" style="display: none;">
+                <div class="form-container" id="income-form">
+                    <div class="form-header">
+                        <h3 class="form-title">Add Income</h3>
+                        <button class="close-form" id="close-income-form">×</button>
+                    </div>
+                    <form id="income-form-data">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="income-date">Date</label>
+                                <input type="date" id="income-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="income-amount">Amount</label>
+                                <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="income-section-name">Section Name</label>
+                                <input type="text" id="income-section-name" list="income-sections-list" placeholder="Enter or select section" required>
+                                <datalist id="income-sections-list">
+                                    <!-- Previously used sections will appear here -->
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="income-description">Description</label>
+                            <textarea id="income-description" rows="2" placeholder="Optional description"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancel-income">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-income">Save Income</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Income History</h3>
+                    <div id="income-sections">
+                        <!-- Income sections will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expense Section -->
+            <div id="expense-section" class="tab-content" style="display: none;">
+                <div class="form-container" id="expense-form">
+                    <div class="form-header">
+                        <h3 class="form-title">Add Expense</h3>
+                        <button class="close-form" id="close-expense-form">×</button>
+                    </div>
+                    <form id="expense-form-data">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="expense-date">Date</label>
+                                <input type="date" id="expense-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expense-amount">Amount</label>
+                                <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expense-section-name">Section Name</label>
+                                <input type="text" id="expense-section-name" list="expense-sections-list" placeholder="Enter or select section" required>
+                                <datalist id="expense-sections-list">
+                                    <!-- Previously used sections will appear here -->
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-description">Description</label>
+                            <textarea id="expense-description" rows="2" placeholder="Optional description"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancel-expense">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-expense">Save Expense</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Expense History</h3>
+                    <div id="expense-sections">
+                        <!-- Expense sections will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reports Section -->
+            <div id="reports-section" class="tab-content" style="display: none;">
+                <div class="chart-container">
+                    <h3>Income vs Expense</h3>
+                    <canvas id="comparison-chart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Income Sections</h3>
+                    <canvas id="income-pie-chart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Expense Sections</h3>
+                    <canvas id="expense-pie-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "##################################",
+            authDomain: "##################################",
+            databaseURL: "##################################",
+            projectId: "##################################",
+            storageBucket: "##################################",
+            messagingSenderId: "##################################",
+            appId: "##################################",
+            measurementId: "##################################"
+        };
+      
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const analytics = firebase.analytics();
+
+        // DOM Elements
+        const authPage = document.getElementById('auth-page');
+        const appPage = document.getElementById('app-page');
+        const googleSignInBtn = document.getElementById('google-signin-btn');
+        const signOutBtn = document.getElementById('sign-out-btn');
+        const statusMessage = document.getElementById('status-message');
+        const userProfile = document.getElementById('user-profile');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userEmail = document.getElementById('user-email');
+        const appUserAvatar = document.getElementById('app-user-avatar');
+        const appUsername = document.getElementById('app-username');
+
+        // Tab Elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Form Elements
+        const incomeForm = document.getElementById('income-form');
+        const expenseForm = document.getElementById('expense-form');
+        const closeIncomeForm = document.getElementById('close-income-form');
+        const closeExpenseForm = document.getElementById('close-expense-form');
+        const cancelIncome = document.getElementById('cancel-income');
+        const cancelExpense = document.getElementById('cancel-expense');
+
+        // Transaction Sections
+        const recentTransactionsSections = document.getElementById('recent-transactions-sections');
+        const incomeSections = document.getElementById('income-sections');
+        const expenseSections = document.getElementById('expense-sections');
+
+        // Summary Elements
+        const totalIncome = document.getElementById('total-income');
+        const totalExpense = document.getElementById('total-expense');
+        const balance = document.getElementById('balance');
+
+        // Chart Elements
+        let comparisonChart = null;
+        let incomePieChart = null;
+        let expensePieChart = null;
+
+        // Global Variables
+        let transactions = [];
+        let currentUser = null;
+        let currentEditTransaction = null;
+        let usedIncomeSections = new Set();
+        let usedExpenseSections = new Set();
+
+        // Initialize the App
+        function initApp() {
+            // Set default dates
+            setDefaultDates();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Check auth state
+            auth.onAuthStateChanged(handleAuthStateChanged);
+        }
+
+        // Set default dates in forms
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('income-date').value = today;
+            document.getElementById('expense-date').value = today;
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Google Sign-In
+            googleSignInBtn.addEventListener('click', signInWithGoogle);
+            
+            // Sign Out
+            signOutBtn.addEventListener('click', signOut);
+            
+            // Tab Navigation
+            tabs.forEach(tab => {
+                tab.addEventListener('click', switchTab);
+            });
+            
+            // Form Buttons
+            closeIncomeForm.addEventListener('click', () => incomeForm.style.display = 'none');
+            closeExpenseForm.addEventListener('click', () => expenseForm.style.display = 'none');
+            cancelIncome.addEventListener('click', () => incomeForm.style.display = 'none');
+            cancelExpense.addEventListener('click', () => expenseForm.style.display = 'none');
+            
+            // Form Submissions
+            document.getElementById('income-form-data').addEventListener('submit', saveIncome);
+            document.getElementById('expense-form-data').addEventListener('submit', saveExpense);
+        }
+
+        // Handle Auth State Changes
+        function handleAuthStateChanged(user) {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                showAppPage(user);
+                loadUserData(user.uid);
+            } else {
+                // User is signed out
+                showAuthPage();
+            }
+        }
+
+        // Show Auth Page
+        function showAuthPage() {
+            authPage.style.display = 'flex';
+            appPage.style.display = 'none';
+            userProfile.style.display = 'none';
+            statusMessage.textContent = '';
+            statusMessage.className = 'status-message';
+        }
+
+        // Show App Page
+        function showAppPage(user) {
+            authPage.style.display = 'none';
+            appPage.style.display = 'block';
+            userProfile.style.display = 'block';
+            
+            // Update user info
+            userName.textContent = user.displayName || 'User';
+            userEmail.textContent = user.email || '';
+            appUsername.textContent = user.displayName || 'User';
+            
+            if (user.photoURL) {
+                userAvatar.src = user.photoURL;
+                appUserAvatar.src = user.photoURL;
+            } else {
+                userAvatar.src = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+                appUserAvatar.src = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+            }
+            
+            showStatus(`Welcome, ${user.displayName || 'User'}!`, 'success');
+        }
+
+        // Sign In with Google
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            // Add scopes
+            provider.addScope('profile');
+            provider.addScope('email');
+            
+            // Set custom parameters
+            provider.setCustomParameters({
+                prompt: 'select_account'
+            });
+            
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    // Success
+                    const user = result.user;
+                    analytics.logEvent('login', { method: 'Google' });
+                })
+                .catch((error) => {
+                    // Handle Errors
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    
+                    showStatus(errorMessage, 'error');
+                    console.error('Google Sign-In Error:', errorCode, errorMessage);
+                });
+        }
+
+        // Sign Out
+        function signOut() {
+            auth.signOut()
+                .then(() => {
+                    showStatus('Signed out successfully', 'success');
+                    analytics.logEvent('signout');
+                })
+                .catch((error) => {
+                    showStatus(error.message, 'error');
+                    console.error('Sign Out Error:', error);
+                });
+        }
+
+        // Switch Tabs
+        function switchTab(e) {
+            const tabId = e.target.getAttribute('data-tab');
+            
+            // Update active tab
+            tabs.forEach(tab => tab.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Show corresponding content
+            tabContents.forEach(content => content.style.display = 'none');
+            document.getElementById(`${tabId}-section`).style.display = 'block';
+            
+            // Show form if income/expense tab
+            if (tabId === 'income') {
+                incomeForm.style.display = 'block';
+            } else if (tabId === 'expense') {
+                expenseForm.style.display = 'block';
+            } else if (tabId === 'reports') {
+                updateCharts();
+            }
+        }
+
+        // Load User Data from Firebase
+        function loadUserData(userId) {
+            const transactionsRef = database.ref(`users/${userId}/transactions`);
+            
+            transactionsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                transactions = data ? Object.values(data) : [];
+                updateTransactions();
+                updateSummary();
+                updateCharts();
+            });
+        }
+
+        // Update Transactions Display
+        function updateTransactions() {
+            // Clear existing sections
+            recentTransactionsSections.innerHTML = '';
+            incomeSections.innerHTML = '';
+            expenseSections.innerHTML = '';
+            
+            // Clear section sets
+            usedIncomeSections.clear();
+            usedExpenseSections.clear();
+            
+            // Sort by date (newest first)
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Group transactions by section name and collect used sections
+            const incomeGroups = {};
+            const expenseGroups = {};
+            
+            transactions.forEach(transaction => {
+                const sectionName = transaction.sectionName || 'Other';
+                if (transaction.type === 'Income') {
+                    usedIncomeSections.add(sectionName);
+                    if (!incomeGroups[sectionName]) {
+                        incomeGroups[sectionName] = [];
+                    }
+                    incomeGroups[sectionName].push(transaction);
+                } else {
+                    usedExpenseSections.add(sectionName);
+                    if (!expenseGroups[sectionName]) {
+                        expenseGroups[sectionName] = [];
+                    }
+                    expenseGroups[sectionName].push(transaction);
+                }
+            });
+            
+            // Update datalist options
+            updateSectionDropdowns();
+            
+            // Display recent transactions (last 5)
+            const recent = transactions.slice(0, 5);
+            const recentGroups = {};
+            recent.forEach(transaction => {
+                const sectionName = transaction.sectionName || 'Other';
+                if (!recentGroups[sectionName]) {
+                    recentGroups[sectionName] = [];
+                }
+                recentGroups[sectionName].push(transaction);
+            });
+            displayTransactionSections(recentGroups, recentTransactionsSections);
+            
+            // Display all income transactions
+            displayTransactionSections(incomeGroups, incomeSections);
+            
+            // Display all expense transactions
+            displayTransactionSections(expenseGroups, expenseSections);
+            
+            // Set up edit/delete buttons
+            setupTransactionActions();
+        }
+
+        // Update section dropdowns with previously used sections
+        function updateSectionDropdowns() {
+            const incomeDatalist = document.getElementById('income-sections-list');
+            const expenseDatalist = document.getElementById('expense-sections-list');
+            
+            incomeDatalist.innerHTML = '';
+            expenseDatalist.innerHTML = '';
+            
+            usedIncomeSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section;
+                incomeDatalist.appendChild(option);
+            });
+            
+            usedExpenseSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section;
+                expenseDatalist.appendChild(option);
+            });
+        }
+
+        // Display transaction sections
+        function displayTransactionSections(groups, container) {
+            for (const [sectionName, transactions] of Object.entries(groups)) {
+                const sectionElement = document.createElement('div');
+                sectionElement.className = 'transaction-section';
+                
+                const header = document.createElement('div');
+                header.className = 'section-header';
+                header.textContent = sectionName;
+                sectionElement.appendChild(header);
+                
+                const list = document.createElement('ul');
+                list.className = 'transaction-list';
+                
+                transactions.forEach(transaction => {
+                    const item = document.createElement('li');
+                    item.className = 'transaction-item';
+                    item.dataset.id = transaction.id;
+                    
+                    const date = document.createElement('div');
+                    date.className = 'transaction-date';
+                    date.textContent = formatDate(transaction.date);
+                    
+                    const description = document.createElement('div');
+                    description.className = 'transaction-description';
+                    description.textContent = transaction.description || '-';
+                    
+                    const amount = document.createElement('div');
+                    amount.className = transaction.type === 'Income' ? 'transaction-amount income' : 'transaction-amount expense';
+                    amount.textContent = `${transaction.type === 'Income' ? '+' : '-'}₹${transaction.amount.toFixed(2)}`;
+                    
+                    const actions = document.createElement('div');
+                    actions.className = 'transaction-actions';
+                    actions.innerHTML = `
+                        <button class="action-btn edit-btn" data-id="${transaction.id}">Edit</button>
+                        <button class="action-btn delete-btn" data-id="${transaction.id}">Delete</button>
+                    `;
+                    
+                    item.append(date, description, amount, actions);
+                    list.appendChild(item);
+                });
+                
+                sectionElement.appendChild(list);
+                container.appendChild(sectionElement);
+            }
+        }
+
+        // Set up Transaction Action Buttons
+        function setupTransactionActions() {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const transactionId = e.target.getAttribute('data-id');
+                    const transaction = transactions.find(t => t.id === transactionId);
+                    if (transaction) {
+                        editTransaction(transaction);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const transactionId = e.target.getAttribute('data-id');
+                    const transaction = transactions.find(t => t.id === transactionId);
+                    if (transaction && confirm('Are you sure you want to delete this transaction?')) {
+                        deleteTransaction(transactionId);
+                    }
+                });
+            });
+        }
+
+        // Save Income Transaction
+        function saveIncome(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('income-date').value;
+            const amount = parseFloat(document.getElementById('income-amount').value);
+            const sectionName = document.getElementById('income-section-name').value;
+            const description = document.getElementById('income-description').value;
+            
+            if (!date || isNaN(amount) || !sectionName) {
+                showStatus('Please enter valid date, amount and section name', 'error');
+                return;
+            }
+            
+            const transaction = {
+                id: currentEditTransaction ? currentEditTransaction.id : Date.now().toString(),
+                date,
+                amount,
+                sectionName,
+                description,
+                type: 'Income'
+            };
+            
+            saveTransaction(transaction);
+            incomeForm.style.display = 'none';
+        }
+
+        // Save Expense Transaction
+        function saveExpense(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('expense-date').value;
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const sectionName = document.getElementById('expense-section-name').value;
+            const description = document.getElementById('expense-description').value;
+            
+            if (!date || isNaN(amount) || !sectionName) {
+                showStatus('Please enter valid date, amount and section name', 'error');
+                return;
+            }
+            
+            const transaction = {
+                id: currentEditTransaction ? currentEditTransaction.id : Date.now().toString(),
+                date,
+                amount,
+                sectionName,
+                description,
+                type: 'Expense'
+            };
+            
+            saveTransaction(transaction);
+            expenseForm.style.display = 'none';
+        }
+
+        // Save Transaction to Firebase
+        function saveTransaction(transaction) {
+            const transactionsRef = database.ref(`users/${currentUser.uid}/transactions`);
+            
+            // If editing, find and update existing transaction
+            if (currentEditTransaction) {
+                transactionsRef.once('value', (snapshot) => {
+                    snapshot.forEach((childSnapshot) => {
+                        const t = childSnapshot.val();
+                        if (t.id === currentEditTransaction.id) {
+                            transactionsRef.child(childSnapshot.key).update(transaction);
+                        }
+                    });
+                });
+                
+                currentEditTransaction = null;
+                showStatus('Transaction updated successfully', 'success');
+            } else {
+                // Add new transaction
+                transactionsRef.push(transaction);
+                showStatus('Transaction added successfully', 'success');
+            }
+            
+            // Reset form
+            document.getElementById('income-form-data').reset();
+            document.getElementById('expense-form-data').reset();
+            setDefaultDates();
+        }
+
+        // Edit Transaction
+        function editTransaction(transaction) {
+            currentEditTransaction = transaction;
+            
+            // Show appropriate form
+            if (transaction.type === 'Income') {
+                document.getElementById('income-date').value = transaction.date;
+                document.getElementById('income-amount').value = transaction.amount;
+                document.getElementById('income-section-name').value = transaction.sectionName;
+                document.getElementById('income-description').value = transaction.description || '';
+                
+                // Show income form
+                incomeForm.style.display = 'block';
+                document.getElementById('income-section').style.display = 'block';
+                
+                // Update tabs
+                tabs.forEach(tab => tab.classList.remove('active'));
+                document.querySelector('.tab[data-tab="income"]').classList.add('active');
+                tabContents.forEach(content => content.style.display = 'none');
+            } else {
+                document.getElementById('expense-date').value = transaction.date;
+                document.getElementById('expense-amount').value = transaction.amount;
+                document.getElementById('expense-section-name').value = transaction.sectionName;
+                document.getElementById('expense-description').value = transaction.description || '';
+                
+                // Show expense form
+                expenseForm.style.display = 'block';
+                document.getElementById('expense-section').style.display = 'block';
+                
+                // Update tabs
+                tabs.forEach(tab => tab.classList.remove('active'));
+                document.querySelector('.tab[data-tab="expense"]').classList.add('active');
+                tabContents.forEach(content => content.style.display = 'none');
+            }
+        }
+
+        // Delete Transaction
+        function deleteTransaction(transactionId) {
+            const transactionsRef = database.ref(`users/${currentUser.uid}/transactions`);
+            
+            transactionsRef.once('value', (snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const transaction = childSnapshot.val();
+                    if (transaction.id === transactionId) {
+                        transactionsRef.child(childSnapshot.key).remove();
+                        showStatus('Transaction deleted successfully', 'success');
+                    }
+                });
+            });
+        }
+
+        // Update Summary
+        function updateSummary() {
+            let totalIncomeAmount = 0;
+            let totalExpenseAmount = 0;
+            
+            transactions.forEach(transaction => {
+                if (transaction.type === 'Income') {
+                    totalIncomeAmount += transaction.amount;
+                } else {
+                    totalExpenseAmount += transaction.amount;
+                }
+            });
+            
+            const balanceAmount = totalIncomeAmount - totalExpenseAmount;
+            
+            totalIncome.textContent = `₹${totalIncomeAmount.toFixed(2)}`;
+            totalExpense.textContent = `₹${totalExpenseAmount.toFixed(2)}`;
+            balance.textContent = `₹${Math.abs(balanceAmount).toFixed(2)}`;
+            
+            if (balanceAmount >= 0) {
+                balance.className = 'summary-value balance-positive';
+            } else {
+                balance.className = 'summary-value balance-negative';
+            }
+        }
+
+        // Update Charts
+        function updateCharts() {
+            updateComparisonChart();
+            updatePieCharts();
+        }
+
+        function updateComparisonChart() {
+            const ctx = document.getElementById('comparison-chart').getContext('2d');
+            
+            const totalIncome = transactions
+                .filter(t => t.type === 'Income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const totalExpense = transactions
+                .filter(t => t.type === 'Expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+            
+            comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income vs Expense'],
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: [totalIncome],
+                            backgroundColor: '#34A853',
+                            borderColor: '#34A853',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Expense',
+                            data: [totalExpense],
+                            backgroundColor: '#EA4335',
+                            borderColor: '#EA4335',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePieCharts() {
+            // Income Sections
+            const incomeCtx = document.getElementById('income-pie-chart').getContext('2d');
+            const incomeSectionsData = {};
+            
+            transactions
+                .filter(t => t.type === 'Income')
+                .forEach(t => {
+                    const sectionName = t.sectionName || 'Other';
+                    incomeSectionsData[sectionName] = (incomeSectionsData[sectionName] || 0) + t.amount;
+                });
+            
+            const incomeLabels = Object.keys(incomeSectionsData);
+            const incomeData = Object.values(incomeSectionsData);
+            
+            if (incomePieChart) {
+                incomePieChart.destroy();
+            }
+            
+            incomePieChart = new Chart(incomeCtx, {
+                type: 'pie',
+                data: {
+                    labels: incomeLabels,
+                    datasets: [{
+                        data: incomeData,
+                        backgroundColor: [
+                            '#4285F4', '#34A853', '#FBBC05', '#EA4335', '#673AB7',
+                            '#FF9800', '#9C27B0', '#00BCD4', '#8BC34A', '#FF5722'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+            
+            // Expense Sections
+            const expenseCtx = document.getElementById('expense-pie-chart').getContext('2d');
+            const expenseSectionsData = {};
+            
+            transactions
+                .filter(t => t.type === 'Expense')
+                .forEach(t => {
+                    const sectionName = t.sectionName || 'Other';
+                    expenseSectionsData[sectionName] = (expenseSectionsData[sectionName] || 0) + t.amount;
+                });
+            
+            const expenseLabels = Object.keys(expenseSectionsData);
+            const expenseData = Object.values(expenseSectionsData);
+            
+            if (expensePieChart) {
+                expensePieChart.destroy();
+            }
+            
+            expensePieChart = new Chart(expenseCtx, {
+                type: 'pie',
+                data: {
+                    labels: expenseLabels,
+                    datasets: [{
+                        data: expenseData,
+                        backgroundColor: [
+                            '#4285F4', '#34A853', '#FBBC05', '#EA4335', '#673AB7',
+                            '#FF9800', '#9C27B0', '#00BCD4', '#8BC34A', '#FF5722'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
+
+        //logout 
+
+
+  // Replace the previous logout button code with this:
+  document.getElementById('logout-btn').addEventListener('click', function() {
+    // This calls your existing signOut() function that's already working
+    signOut();
+  });
+
+         // Add this to your existing JavaScript
+  document.getElementById('logout-btn').addEventListener('click', function() {
+    auth.signOut()
+      .then(() => {
+        showStatus('Signed out successfully', 'success');
+        document.getElementById('app-page').style.display = 'none';
+        document.getElementById('auth-page').style.display = 'flex';
+      })
+      .catch((error) => {
+        showStatus(error.message, 'error');
+      });
+  });
+
+
+
+        // Format Date
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        // Show Status Message
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            
+            setTimeout(() => {
+                statusMessage.textContent = '';
+                statusMessage.className = 'status-message';
+            }, 5000);
+        }
+
+        // Initialize the App
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+
+
+<style>
+  /* Add these styles to your existing CSS */
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .logout-btn {
+    background: #EA4335;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.3s;
+    margin-left: 10px;
+  }
+  
+  .logout-btn:hover {
+    background: #D32F2F;
+  }
+</style>
+<script>
+
+
+// Add this with your other DOM element declarations
+const logoutBtn = document.getElementById('logout-btn');
+
+// Add this with your other event listeners
+logoutBtn.addEventListener('click', handleLogout);
+
+// Add this function with your other auth functions
+function handleLogout() {
+  auth.signOut()
+    .then(() => {
+      console.log("User signed out successfully");
+      // Hide app page and show auth page
+      appPage.style.display = 'none';
+      authPage.style.display = 'flex';
+      // Clear any user data if needed
+      appUsername.textContent = '';
+      appUserAvatar.src = '';
+      // Show status message
+      showStatus('Signed out successfully', 'success');
+    })
+    .catch((error) => {
+      console.error("Sign out error:", error);
+      showStatus(error.message, 'error');
+    });
+}
+
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    // User is signed in
+    currentUser = user;
+    showAppPage(user);
+    loadUserData(user.uid);
+  } else {
+    // User is signed out
+    showAuthPage();
+  }
+});
+</script>
+</body>
+</html>
